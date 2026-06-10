@@ -80,6 +80,7 @@ class YtDigestStack(Stack):
                 "TELEGRAM_TOKEN_PARAM": telegram_token_param,
                 "TELEGRAM_CHAT_ID_PARAM": telegram_chat_id_param,
                 "VIDEOS_TABLE": table.table_name,
+                "VIDEO_FETCH_MODE_PARAM": "/yt-digest/video-fetch-mode",
             },
         )
 

@@ -53,6 +53,7 @@ def handler(event, context):
     try:
         print("📦 Loading SSM parameters...")
         model_id = get_param(bedrock_model_param)
+        video_fetch_mode = get_param(os.environ["VIDEO_FETCH_MODE_PARAM"])
         youtube_refresh_token = get_param(youtube_param)
         youtube_client_id = get_param(youtube_client_id_param)
         youtube_client_secret = get_param(youtube_client_secret_param)
@@ -63,7 +64,7 @@ def handler(event, context):
 
     try:
         print("🔍 Fetching YouTube subscriptions and videos...")
-        use_rss = os.environ.get("USE_RSS", "true").lower() == "true"
+        use_rss = video_fetch_mode == "rss"
         videos = get_new_videos(youtube_refresh_token, youtube_client_id, youtube_client_secret, use_rss=use_rss)
         print(f"✅ Found {len(videos)} new videos")
     except Exception as e:
