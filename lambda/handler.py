@@ -112,6 +112,35 @@ def handler(event, context):
 
     # Format and send
     today = datetime.now(timezone.utc).strftime("%B %d, %Y")
+    today_key = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Store in DynamoDB for future querying
+    try:
+        table_name = os.environ.get("VIDEOS_TABLE")
+        if table_name:
+            dynamodb_table = boto3.resource("dynamodb").Table(table_name)
+            with dynamodb_table.batch_writer() as batch:
+                for s in summaries:
+                    batch.put_item(Item={
+                        "date": today_key,
+                        "video_id": s["video_id"],
+                        "title": s["title"],
+                        "channel": s["channel"],
+                        "summary": s["summary"],
+                        "published_at": today_key,
+                    })
+                for bs in bulk_summaries:
+                    batch.put_item(Item={
+                        "date": today_key,
+                        "video_id": f"bulk_{bs['channel']}",
+                        "title": f"[{bs['count']} videos]",
+                        "channel": bs["channel"],
+                        "summary": bs["summary"],
+                        "published_at": today_key,
+                    })
+            print(f"💾 Stored {len(summaries) + len(bulk_summaries)} items in DynamoDB")
+    except Exception as e:
+        print(f"⚠️ DynamoDB write failed (non-fatal): {e}")
     message = f"📺 *YouTube Digest — {today}*\n\n"
 
     for i, s in enumerate(summaries, 1):

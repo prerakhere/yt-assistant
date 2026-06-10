@@ -11,10 +11,12 @@ from aws_cdk import (
     Stack,
     Duration,
     BundlingOptions,
+    RemovalPolicy,
     aws_lambda as _lambda,
     aws_iam as iam,
     aws_events as events,
     aws_events_targets as targets,
+    aws_dynamodb as dynamodb,
 )
 from constructs import Construct
 
@@ -32,6 +34,24 @@ class YtDigestStack(Stack):
         youtube_client_id_param = "/yt-digest/youtube-client-id"
         youtube_client_secret_param = "/yt-digest/youtube-client-secret"
         bedrock_model_param = "/yt-digest/bedrock-model-id"
+
+        # DynamoDB table for storing video digests
+        table = dynamodb.Table(
+            self,
+            "VideosTable",
+            table_name="yt-digest-videos",
+            partition_key=dynamodb.Attribute(name="date", type=dynamodb.AttributeType.STRING),
+            sort_key=dynamodb.Attribute(name="video_id", type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=RemovalPolicy.RETAIN,
+        )
+
+        # GSI to query by channel
+        table.add_global_secondary_index(
+            index_name="channel-index",
+            partition_key=dynamodb.Attribute(name="channel", type=dynamodb.AttributeType.STRING),
+            sort_key=dynamodb.Attribute(name="published_at", type=dynamodb.AttributeType.STRING),
+        )
 
         # Lambda function with bundled dependencies
         fn = _lambda.Function(
@@ -59,6 +79,7 @@ class YtDigestStack(Stack):
                 "YOUTUBE_CLIENT_SECRET_PARAM": youtube_client_secret_param,
                 "TELEGRAM_TOKEN_PARAM": telegram_token_param,
                 "TELEGRAM_CHAT_ID_PARAM": telegram_chat_id_param,
+                "VIDEOS_TABLE": table.table_name,
             },
         )
 
@@ -79,6 +100,9 @@ class YtDigestStack(Stack):
                 resources=["*"],
             )
         )
+
+        # Permission: write to DynamoDB
+        table.grant_write_data(fn)
 
         # EventBridge rule: daily at 6:00 AM IST (= 0:30 AM UTC)
         rule = events.Rule(
