@@ -20,3 +20,4 @@ cdk.out/
 # Env
 .env
 get_token.py
+response.json
