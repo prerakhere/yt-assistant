@@ -20,4 +20,5 @@ cdk.out/
 # Env
 .env
 get_token.py
+CONTEXT.md
 response.json
