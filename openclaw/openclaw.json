@@ -1,0 +1,54 @@
+{
+  "gateway": {
+    "mode": "local",
+    "port": 18789,
+    "bind": "lan",
+    "auth": {
+      "mode": "token",
+      "token": "yt-assistant-internal-token-2026"
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": { "enabled": true }
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "amazon-bedrock": {
+        "baseUrl": "https://bedrock-runtime.ap-south-1.amazonaws.com",
+        "api": "bedrock-converse-stream",
+        "auth": "aws-sdk",
+        "models": [
+          {
+            "id": "apac.amazon.nova-pro-v1:0",
+            "name": "Nova Pro (APAC)",
+            "input": ["text"],
+            "contextWindow": 300000,
+            "maxTokens": 5000
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "amazon-bedrock/apac.amazon.nova-pro-v1:0"
+      },
+      "thinkingDefault": "off"
+    }
+  },
+  "skills": {
+    "load": {
+      "extraDirs": ["/skills"]
+    }
+  },
+  "plugins": {
+    "entries": {
+      "amazon-bedrock": {
+        "enabled": true
+      }
+    }
+  }
+}

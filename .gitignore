@@ -22,3 +22,6 @@ cdk.out/
 get_token.py
 CONTEXT.md
 response.json
+openclaw/deploy_runtime.py
+openclaw/update_runtime.py
+openclaw/test-contract.js
