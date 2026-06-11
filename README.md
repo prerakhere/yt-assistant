@@ -51,18 +51,6 @@ EventBridge (daily 6 AM IST) → Lambda → RSS Feeds + Transcripts → Bedrock 
 └── .gitignore
 ```
 
-## SSM Parameters
-
-| Parameter | Value |
-|-----------|-------|
-| `/yt-digest/youtube-refresh-token` | OAuth refresh token |
-| `/yt-digest/youtube-client-id` | GCP OAuth client ID |
-| `/yt-digest/youtube-client-secret` | GCP OAuth client secret |
-| `/yt-digest/telegram-bot-token` | Telegram bot token |
-| `/yt-digest/telegram-chat-id` | Your Telegram chat ID |
-| `/yt-digest/bedrock-model-id` | e.g. `apac.amazon.nova-lite-v1:0` |
-| `/yt-digest/video-fetch-mode` | `rss` (default) or `api` |
-
 ## Setup
 
 ### Prerequisites
@@ -89,9 +77,3 @@ npx cdk deploy --profile <your-profile>
 aws lambda invoke --function-name <function-name> \
     --invocation-type Event --profile <your-profile> --region ap-south-1 response.json
 ```
-
-## Roadmap
-
-- [ ] OpenClaw integration (conversational queries over stored digests)
-- [ ] Save to Watch Later via Telegram replies
-- [ ] Weekly roundup summaries
