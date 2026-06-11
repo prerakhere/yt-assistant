@@ -13,17 +13,6 @@ EventBridge (daily 6 AM IST) → Lambda → RSS Feeds + Transcripts → Bedrock 
                                                                            → DynamoDB
 ```
 
-## Cost
-
-| Service | Monthly cost |
-|---------|-------------|
-| Lambda | Free tier |
-| EventBridge | Free tier |
-| SSM Parameter Store | Free |
-| DynamoDB | Free tier |
-| Bedrock (Nova Lite) | ~₹25-30 |
-| **Total** | **~₹25-30/month** |
-
 ## Features
 
 - Fetches subscriptions via RSS feeds (fast, parallel transcript fetching)
