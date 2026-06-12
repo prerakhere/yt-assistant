@@ -19,19 +19,23 @@ RUN mkdir -p /app && cd /app && npm init -y > /dev/null 2>&1 && \
 ENV NODE_PATH=/app/node_modules
 WORKDIR /app
 
-# Pre-create OpenClaw config and copy config first
-RUN mkdir -p /root/.openclaw
+# Pre-create OpenClaw config and workspace at correct paths
+RUN mkdir -p /root/.openclaw/workspace/memory
 COPY openclaw.json /root/.openclaw/openclaw.json
 
 # Install amazon-bedrock provider plugin AFTER config exists
 RUN echo y | openclaw plugins install npm:@openclaw/amazon-bedrock-provider
 
-# Copy remaining files
+# Copy workspace files to correct location
+COPY workspace/SOUL.md /root/.openclaw/workspace/SOUL.md
+COPY workspace/USER.md /root/.openclaw/workspace/USER.md
+COPY workspace/AGENTS.md /root/.openclaw/workspace/AGENTS.md
+COPY workspace/IDENTITY.md /root/.openclaw/workspace/IDENTITY.md
+COPY workspace/TOOLS.md /root/.openclaw/workspace/TOOLS.md
+COPY workspace/MEMORY.md /root/.openclaw/workspace/MEMORY.md
+
+# Copy contract adapter and skills
 COPY agentcore-contract.js /app/agentcore-contract.js
-COPY test-contract.js /app/test-contract.js
-COPY workspace/SOUL.md /root/.openclaw/SOUL.md
-COPY workspace/USER.md /root/.openclaw/USER.md
-COPY workspace/AGENTS.md /root/.openclaw/AGENTS.md
 COPY skills/ /skills/
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh /skills/query-videos/query-videos.js

@@ -47,9 +47,14 @@ function waitForOpenclaw() {
 // Forward message to OpenClaw REST API
 function sendToOpenclaw(message) {
   return new Promise((resolve) => {
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
     const body = JSON.stringify({
       model: "openclaw",
-      messages: [{ role: "user", content: message }],
+      messages: [
+        { role: "system", content: `Today's date is ${today}. Use this for relative date calculations (yesterday, last week, etc).` },
+        { role: "user", content: message },
+      ],
+      user: "prerak",
     });
 
     const req = http.request({
@@ -62,7 +67,7 @@ function sendToOpenclaw(message) {
         "Authorization": `Bearer ${gatewayToken}`,
         "Content-Length": Buffer.byteLength(body),
       },
-      timeout: 90000,
+      timeout: 180000,
     }, (res) => {
       let data = "";
       res.on("data", (chunk) => { data += chunk; });

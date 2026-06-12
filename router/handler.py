@@ -24,12 +24,19 @@ def get_param(name):
 
 def send_telegram(token, chat_id, text):
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    requests.post(url, json={
+    # Try Markdown first, fallback to plain text if it fails
+    resp = requests.post(url, json={
         "chat_id": chat_id,
-        "text": text,
+        "text": text[:4000],
         "parse_mode": "Markdown",
         "disable_web_page_preview": True,
     })
+    if not resp.ok:
+        requests.post(url, json={
+            "chat_id": chat_id,
+            "text": text[:4000],
+            "disable_web_page_preview": True,
+        })
 
 
 def handler(event, context):
@@ -59,7 +66,7 @@ def handler(event, context):
     # Invoke AgentCore
     try:
         import uuid
-        session_id = f"tg_{chat_id}_{uuid.uuid4().hex[:20]}abcdefghijklm"
+        session_id = f"tg_{chat_id}_stable_session_v8abcdefgh"
         response = agentcore.invoke_agent_runtime(
             agentRuntimeArn=AGENT_RUNTIME_ARN,
             runtimeSessionId=session_id,

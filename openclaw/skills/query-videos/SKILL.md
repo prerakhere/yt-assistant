@@ -1,34 +1,29 @@
 # query-videos
 
-Search your YouTube subscription digest history stored in DynamoDB.
+Query YouTube subscription video digests from DynamoDB.
 
-## Tools
+## How to use
 
-### query_videos_by_date
+Run the script with node. The script is at `/skills/query-videos/query-videos.js`.
 
-Query videos from a specific date.
+### Get videos by date
 
-**Arguments:**
-- `date` (string, required): Date in YYYY-MM-DD format
+```bash
+node /skills/query-videos/query-videos.js query_videos_by_date '{"date":"2026-06-10"}'
+```
 
-**Example:** `query_videos_by_date("2026-06-10")`
+### Get videos by channel
 
-### query_videos_by_channel
+```bash
+node /skills/query-videos/query-videos.js query_videos_by_channel '{"channel":"Fireship"}'
+```
 
-Query all videos from a specific channel.
+### Search by keyword
 
-**Arguments:**
-- `channel` (string, required): Channel name (exact match)
-- `limit` (number, optional): Max results (default: 20)
+```bash
+node /skills/query-videos/query-videos.js search_videos '{"keyword":"kubernetes","days":7}'
+```
 
-**Example:** `query_videos_by_channel("Fireship")`
+## Output
 
-### search_videos
-
-Search videos by keyword in title or summary across recent days.
-
-**Arguments:**
-- `keyword` (string, required): Search term
-- `days` (number, optional): How many days back to search (default: 7)
-
-**Example:** `search_videos("kubernetes", 14)`
+Returns JSON array of videos with: title, channel, summary, date, video_id.

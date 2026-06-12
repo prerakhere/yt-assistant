@@ -182,7 +182,7 @@ class YtDigestStack(Stack):
                     ],
                 ),
             ),
-            timeout=Duration.seconds(120),
+            timeout=Duration.seconds(200),
             memory_size=256,
             environment={
                 "AGENT_RUNTIME_ARN": "arn:aws:bedrock-agentcore:ap-south-1:597574415250:runtime/yt_assistant-Qpf0juCKa5",

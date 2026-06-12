@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 /**
  * query-videos skill — searches DynamoDB for YouTube digest data.
- * 
- * Usage by OpenClaw:
- *   node query-videos.js query_videos_by_date '{"date":"2026-06-10"}'
- *   node query-videos.js query_videos_by_channel '{"channel":"Fireship"}'
- *   node query-videos.js search_videos '{"keyword":"kubernetes","days":7}'
  */
 
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBClient } = require("/app/node_modules/@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, ScanCommand } = require("/app/node_modules/@aws-sdk/lib-dynamodb");
 
 const TABLE_NAME = process.env.VIDEOS_TABLE || "yt-digest-videos";
 const REGION = process.env.AWS_REGION || "ap-south-1";

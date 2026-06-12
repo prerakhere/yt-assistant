@@ -17,5 +17,8 @@ CONTRACT_PID=$!
 openclaw gateway --port 18789 &
 OPENCLAW_PID=$!
 
+# Wait for gateway to be ready, then rebuild memory index
+(sleep 10 && openclaw memory index --force 2>/dev/null) &
+
 # Wait for either process to exit
 wait -n $CONTRACT_PID $OPENCLAW_PID

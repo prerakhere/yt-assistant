@@ -25,7 +25,7 @@
             "name": "Nova Pro (APAC)",
             "input": ["text"],
             "contextWindow": 300000,
-            "maxTokens": 5000
+            "maxTokens": 8000
           }
         ]
       }
@@ -36,13 +36,23 @@
       "model": {
         "primary": "amazon-bedrock/apac.amazon.nova-pro-v1:0"
       },
-      "thinkingDefault": "off"
+      "memorySearch": {
+        "provider": "bedrock",
+        "model": "amazon.titan-embed-text-v2:0"
+      },
+      "thinkingDefault": "off",
+      "skipBootstrap": true,
+      "workspace": "/root/.openclaw/workspace"
     }
   },
   "skills": {
     "load": {
       "extraDirs": ["/skills"]
     }
+  },
+  "tools": {
+    "profile": "coding",
+    "deny": ["sessions_spawn"]
   },
   "plugins": {
     "entries": {
