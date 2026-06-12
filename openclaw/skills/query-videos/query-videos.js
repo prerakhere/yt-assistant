@@ -56,6 +56,33 @@ async function searchVideos(keyword, days = 7) {
   return results;
 }
 
+async function getDigestOrder(date) {
+  // Get the ordered digest list
+  const orderResult = await client.send(new QueryCommand({
+    TableName: TABLE_NAME,
+    KeyConditionExpression: "#d = :date AND video_id = :vid",
+    ExpressionAttributeNames: { "#d": "date" },
+    ExpressionAttributeValues: { ":date": date, ":vid": "digest_order" },
+  }));
+
+  const orderItem = (orderResult.Items || [])[0];
+  if (!orderItem || !orderItem.ordered_ids) {
+    return { error: `No digest found for ${date}` };
+  }
+
+  // Get video details for each ID in order
+  const videos = await queryByDate(date);
+  const videoMap = {};
+  for (const v of videos) videoMap[v.video_id] = v;
+
+  return orderItem.ordered_ids.map((id, i) => ({
+    position: i + 1,
+    video_id: id,
+    title: videoMap[id]?.title || "Unknown",
+    channel: videoMap[id]?.channel || "Unknown",
+  }));
+}
+
 // Main: parse command and args
 const [, , command, argsJson] = process.argv;
 const args = JSON.parse(argsJson || "{}");
@@ -71,6 +98,9 @@ const args = JSON.parse(argsJson || "{}");
       break;
     case "search_videos":
       result = await searchVideos(args.keyword, args.days);
+      break;
+    case "get_digest_order":
+      result = await getDigestOrder(args.date);
       break;
     default:
       result = { error: `Unknown command: ${command}` };

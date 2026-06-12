@@ -66,7 +66,7 @@ def handler(event, context):
     # Invoke AgentCore
     try:
         import uuid
-        session_id = f"tg_{chat_id}_stable_session_v8abcdefgh"
+        session_id = f"tg_{chat_id}_stable_session_v12abcdefg"
         response = agentcore.invoke_agent_runtime(
             agentRuntimeArn=AGENT_RUNTIME_ARN,
             runtimeSessionId=session_id,

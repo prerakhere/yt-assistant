@@ -140,6 +140,14 @@ def handler(event, context):
                         "published_at": today_key,
                     })
             print(f"💾 Stored {len(summaries) + len(bulk_summaries)} items in DynamoDB")
+
+            # Store the ordered digest list (maps position numbers to video_ids)
+            ordered_ids = [s["video_id"] for s in summaries]
+            dynamodb_table.put_item(Item={
+                "date": today_key,
+                "video_id": "digest_order",
+                "ordered_ids": ordered_ids,
+            })
     except Exception as e:
         print(f"⚠️ DynamoDB write failed (non-fatal): {e}")
     message = f"📺 *YouTube Digest — {today}*\n\n"

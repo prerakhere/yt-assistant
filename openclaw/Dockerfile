@@ -14,7 +14,7 @@ RUN npm install -g openclaw@latest
 
 # App directory with AWS SDK for DynamoDB skill
 RUN mkdir -p /app && cd /app && npm init -y > /dev/null 2>&1 && \
-    npm install --omit=dev @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb ws
+    npm install --omit=dev @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb @aws-sdk/client-ssm ws
 
 ENV NODE_PATH=/app/node_modules
 WORKDIR /app
@@ -38,7 +38,7 @@ COPY workspace/MEMORY.md /root/.openclaw/workspace/MEMORY.md
 COPY agentcore-contract.js /app/agentcore-contract.js
 COPY skills/ /skills/
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh /skills/query-videos/query-videos.js
+RUN chmod +x /app/entrypoint.sh /skills/query-videos/query-videos.js /skills/save-to-playlist/save-to-playlist.js
 
 EXPOSE 8080
 

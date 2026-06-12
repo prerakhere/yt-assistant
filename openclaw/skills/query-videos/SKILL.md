@@ -27,3 +27,11 @@ node /skills/query-videos/query-videos.js search_videos '{"keyword":"kubernetes"
 ## Output
 
 Returns JSON array of videos with: title, channel, summary, date, video_id.
+
+### Get digest order (numbered list from morning digest)
+
+```bash
+node /skills/query-videos/query-videos.js get_digest_order '{"date":"2026-06-12"}'
+```
+
+Returns ordered list with position numbers matching the morning Telegram digest. Use this when user says "save 2 5 7" referring to the daily digest.

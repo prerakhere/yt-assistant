@@ -1,9 +1,12 @@
 #!/bin/bash
 # Entrypoint for OpenClaw on AgentCore Runtime
+# Handles persistent storage at /mnt/workspace with smart sync:
+# - System files: always overwritten from image (code deploys win)
+# - User files: persistent (memory, sessions survive restarts)
 
-# Ensure directories are writable
-mkdir -p /root/.openclaw/agents/main
-mkdir -p /tmp/openclaw
+MOUNT="/mnt/workspace"
+OPENCLAW_DIR="/root/.openclaw"
+WORKSPACE="$OPENCLAW_DIR/workspace"
 
 # Disable mDNS and set production mode
 export OPENCLAW_DISABLE_BONJOUR=1
@@ -13,12 +16,61 @@ export NODE_ENV=production
 node /app/agentcore-contract.js &
 CONTRACT_PID=$!
 
-# Start OpenClaw gateway (no 'run' subcommand, no daemon fork)
+# --- Persistent storage setup ---
+if [ -d "$MOUNT" ]; then
+  echo "[entrypoint] Persistent storage detected at $MOUNT"
+
+  # Create persistent directory structure if first run
+  mkdir -p "$MOUNT/.openclaw/workspace/memory"
+  mkdir -p "$MOUNT/.openclaw/agents/main/sessions"
+
+  # Copy persistent files FROM mount (memory, sessions — user data)
+  # These survive across deploys
+  if [ -f "$MOUNT/.openclaw/workspace/MEMORY.md" ]; then
+    cp "$MOUNT/.openclaw/workspace/MEMORY.md" "$WORKSPACE/MEMORY.md"
+    echo "[entrypoint] Restored MEMORY.md from persistent storage"
+  fi
+  if [ -d "$MOUNT/.openclaw/workspace/memory" ] && [ "$(ls -A $MOUNT/.openclaw/workspace/memory 2>/dev/null)" ]; then
+    cp -r "$MOUNT/.openclaw/workspace/memory/"* "$WORKSPACE/memory/" 2>/dev/null
+    echo "[entrypoint] Restored memory/ from persistent storage"
+  fi
+  if [ -d "$MOUNT/.openclaw/agents" ] && [ "$(ls -A $MOUNT/.openclaw/agents 2>/dev/null)" ]; then
+    cp -r "$MOUNT/.openclaw/agents/"* "$OPENCLAW_DIR/agents/" 2>/dev/null
+    echo "[entrypoint] Restored agents/ (sessions) from persistent storage"
+  fi
+
+  # System files are NOT copied from mount — image version always wins
+  # (SOUL.md, AGENTS.md, TOOLS.md, IDENTITY.md, USER.md, openclaw.json, skills/)
+
+  # Background job: periodically save user data back to mount
+  (
+    # Initial sync after OpenClaw starts (give it 15s to boot)
+    sleep 15
+    cp "$WORKSPACE/MEMORY.md" "$MOUNT/.openclaw/workspace/MEMORY.md" 2>/dev/null
+    cp -r "$WORKSPACE/memory/"* "$MOUNT/.openclaw/workspace/memory/" 2>/dev/null
+    cp -r "$OPENCLAW_DIR/agents/"* "$MOUNT/.openclaw/agents/" 2>/dev/null
+    echo "[sync] Initial sync done"
+
+    while true; do
+      sleep 30  # sync every 30 seconds
+      cp "$WORKSPACE/MEMORY.md" "$MOUNT/.openclaw/workspace/MEMORY.md" 2>/dev/null
+      cp -r "$WORKSPACE/memory/"* "$MOUNT/.openclaw/workspace/memory/" 2>/dev/null
+      cp -r "$OPENCLAW_DIR/agents/"* "$MOUNT/.openclaw/agents/" 2>/dev/null
+    done
+  ) &
+else
+  echo "[entrypoint] No persistent storage — ephemeral mode"
+fi
+
+# Ensure directories exist
+mkdir -p "$WORKSPACE/memory" "$OPENCLAW_DIR/agents/main" /tmp/openclaw
+
+# Start OpenClaw gateway
 openclaw gateway --port 18789 &
 OPENCLAW_PID=$!
 
-# Wait for gateway to be ready, then rebuild memory index
+# Rebuild memory index after gateway starts
 (sleep 10 && openclaw memory index --force 2>/dev/null) &
 
-# Wait for either process to exit
+# Wait for any process to exit
 wait -n $CONTRACT_PID $OPENCLAW_PID

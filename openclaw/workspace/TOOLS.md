@@ -2,8 +2,16 @@
 
 ## Tool Conventions
 
-- The query-videos skill is at `/skills/query-videos/query-videos.js` (absolute path)
-- Run it with: `node /skills/query-videos/query-videos.js <command> '<json_args>'`
+### query-videos
+- Script: `/skills/query-videos/query-videos.js` (absolute path)
+- Run: `node /skills/query-videos/query-videos.js <command> '<json_args>'`
 - Channel names are case-sensitive — use exact casing as stored (e.g. "Fireship" not "fireship")
 - Dates must be in YYYY-MM-DD format
-- The script outputs JSON — parse it to present results to the user
+- Output: JSON array
+
+### save-to-playlist
+- Script: `/skills/save-to-playlist/save-to-playlist.js` (absolute path)
+- Run: `node /skills/save-to-playlist/save-to-playlist.js '{"video_ids":["ID1","ID2"]}'`
+- With named playlist: `node /skills/save-to-playlist/save-to-playlist.js '{"video_ids":["ID1"],"playlist":"AI Videos"}'`
+- Default playlist: "Later"
+- Output: JSON with saved/failed lists
