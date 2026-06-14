@@ -52,7 +52,7 @@
   },
   "tools": {
     "profile": "coding",
-    "deny": ["sessions_spawn"]
+    "deny": ["sessions_spawn", "memory_search"]
   },
   "plugins": {
     "entries": {

@@ -39,6 +39,9 @@ if [ -d "$MOUNT" ]; then
     echo "[entrypoint] Restored agents/ (sessions) from persistent storage"
   fi
 
+  # Do NOT restore SQLite index files — they cause mismatch errors
+  # Instead, openclaw memory index --force rebuilds from text files after boot
+
   # System files are NOT copied from mount — image version always wins
   # (SOUL.md, AGENTS.md, TOOLS.md, IDENTITY.md, USER.md, openclaw.json, skills/)
 
@@ -52,7 +55,7 @@ if [ -d "$MOUNT" ]; then
     echo "[sync] Initial sync done"
 
     while true; do
-      sleep 30  # sync every 30 seconds
+      sleep 30
       cp "$WORKSPACE/MEMORY.md" "$MOUNT/.openclaw/workspace/MEMORY.md" 2>/dev/null
       cp -r "$WORKSPACE/memory/"* "$MOUNT/.openclaw/workspace/memory/" 2>/dev/null
       cp -r "$OPENCLAW_DIR/agents/"* "$MOUNT/.openclaw/agents/" 2>/dev/null
@@ -69,8 +72,16 @@ mkdir -p "$WORKSPACE/memory" "$OPENCLAW_DIR/agents/main" /tmp/openclaw
 openclaw gateway --port 18789 &
 OPENCLAW_PID=$!
 
-# Rebuild memory index after gateway starts
-(sleep 10 && openclaw memory index --force 2>/dev/null) &
+# Rebuild memory index after gateway is fully ready (not just after sleep)
+(
+  # Wait for OpenClaw health endpoint
+  until curl -sf http://127.0.0.1:18789/healthz > /dev/null 2>&1; do
+    sleep 2
+  done
+  sleep 5  # extra buffer for provider auth warmup
+  openclaw memory index --force 2>&1 | head -5
+  echo "[entrypoint] Memory index rebuilt"
+) &
 
 # Wait for any process to exit
 wait -n $CONTRACT_PID $OPENCLAW_PID
