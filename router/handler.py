@@ -82,4 +82,4 @@ def handler(event, context):
     # Send response back to Telegram
     send_telegram(token, chat_id, reply)
 
-    return {"statusCode": 200, "body": "ok"}
+    return {"statusCode": 200, "body": json.dumps({"reply": reply})}
