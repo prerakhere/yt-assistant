@@ -1,11 +1,12 @@
 # yt-assistant
 
-A personal YouTube assistant: daily subscriptions digest + interactive AI agent, powered by AWS Bedrock and OpenClaw on AgentCore.
+A personal YouTube assistant: daily subscriptions digest + interactive AI agent, powered by AWS Bedrock and Strands Agents on AgentCore.
 
 ## Features
 
 1. **Daily Subscription Digest:** Fetches the last 24hrs YouTube subscription videos, summarizes them using AWS Bedrock, and sends a formatted daily digest to Telegram.
 2. **Interactive Assistant:** Search across the video summaries by topic/channel name/date, save videos to playlists, all through natural conversation on the same Telegram bot.
+3. **Cross-session Memory:** Conversations persist across container restarts via AgentCore Memory.
 
 **Example queries:**
 - What AI or cloud videos came out this week?
@@ -37,21 +38,20 @@ A personal YouTube assistant: daily subscriptions digest + interactive AI agent,
 ├── router/
 │   ├── handler.py              # Router Lambda (Telegram webhook → AgentCore)
 │   └── requirements.txt
-├── openclaw/
-│   ├── Dockerfile              # OpenClaw container for AgentCore
-│   ├── agentcore-contract.js   # HTTP bridge (port 8080 ↔ OpenClaw REST API)
-│   ├── entrypoint.sh           # Container startup + persistence sync
-│   ├── openclaw.json           # OpenClaw configuration (Bedrock, tools, memory)
+├── strands/                    # Active — interactive agent (Strands SDK)
+│   ├── agent.py                # Agent with tools + AgentCore Memory
+│   ├── server.py               # HTTP server (BedrockAgentCoreApp, port 8080)
+│   ├── Dockerfile              # ARM64 container for AgentCore Runtime
+│   ├── requirements.txt
+│   └── tests/
+│       └── test_agent.py       # Unit tests
+├── openclaw/                   # Inactive — previous agent implementation (kept for reference)
+│   ├── Dockerfile
+│   ├── agentcore-contract.js
+│   ├── entrypoint.sh
+│   ├── openclaw.json
 │   ├── workspace/
-│   │   ├── SOUL.md             # Agent personality
-│   │   ├── AGENTS.md           # Operating instructions
-│   │   ├── TOOLS.md            # Tool conventions
-│   │   ├── IDENTITY.md         # Agent identity
-│   │   ├── USER.md             # User preferences
-│   │   └── MEMORY.md           # Long-term memory (seed)
 │   └── skills/
-│       ├── query-videos/       # DynamoDB video query skill
-│       └── save-to-playlist/   # YouTube playlist save skill
 └── docs/
     └── architecture.png
 ```
