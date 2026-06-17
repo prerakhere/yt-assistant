@@ -37,7 +37,13 @@ def send_digest(bot_token, chat_id, message):
             "parse_mode": "Markdown",
             "disable_web_page_preview": True,
         })
-        response.raise_for_status()
+        if not response.ok:
+            # Fallback: send without Markdown if formatting breaks
+            requests.post(url, json={
+                "chat_id": chat_id,
+                "text": chunk,
+                "disable_web_page_preview": True,
+            }).raise_for_status()
 
 
 def _split_message(message):
