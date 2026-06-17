@@ -1,48 +1,42 @@
 """HTTP server implementing AgentCore contract (port 8080, /ping, /invocations).
 
 Uses BedrockAgentCoreApp SDK which auto-handles /ping and /invocations routing.
-The runtimeSessionId is passed by AgentCore via the X-Amzn-Bedrock-AgentCore-Runtime-Session-Id header.
-Since each session gets its own microVM, we keep a single agent instance per container.
+Each invocation creates a fresh agent with memory loaded from AgentCore Memory.
 """
 
 import os
 import logging
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from agent import create_agent
+from agent import create_agent, _today_ist
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = BedrockAgentCoreApp()
 
-# Single agent instance per microVM (one session = one microVM in AgentCore)
 SESSION_ID = os.environ.get("RUNTIME_SESSION_ID", "yt_assistant_session")
-agent = None
-agent_date = None
-
-
-def get_agent():
-    global agent, agent_date
-    from agent import _today_ist
-    today = _today_ist()
-    if agent is None or agent_date != today:
-        agent = create_agent(session_id=SESSION_ID)
-        agent_date = today
-    return agent
 
 
 @app.entrypoint
 def invoke(payload):
     """Process incoming request from AgentCore runtime."""
-    logger.info(f"Received payload: {payload}")
+    logger.info(f"Received payload keys: {list(payload.keys())}")
     prompt = payload.get("prompt", "")
     if not prompt:
         return {"response": "No prompt provided.", "status": "error"}
 
     try:
-        a = get_agent()
-        result = a(prompt)
-        logger.info(f"Agent result message: {result.message}")
+        agent = create_agent(session_id=SESSION_ID)
+        result = agent(prompt)
+
+        # Flush memory after each invocation
+        if hasattr(agent, 'session_manager') and agent.session_manager:
+            try:
+                agent.session_manager.close()
+                logger.info("[memory] Flushed conversation to AgentCore Memory")
+            except Exception as e:
+                logger.error(f"[memory] FLUSH FAILED: {type(e).__name__}: {e}")
+
         # Extract text from agent result
         if result.message and result.message.get("content"):
             parts = []

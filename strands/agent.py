@@ -2,12 +2,15 @@
 
 import os
 import json
+import logging
 from datetime import datetime, timezone, timedelta
 
 import boto3
 from strands import Agent, tool
 from strands.models.bedrock import BedrockModel
 from boto3.dynamodb.conditions import Key
+
+logger = logging.getLogger(__name__)
 
 # --- Config ---
 TABLE_NAME = os.environ.get("VIDEOS_TABLE", "yt-digest-videos")
@@ -286,9 +289,14 @@ def create_agent(session_id: str = None):
                 region_name=REGION,
             )
             agent_kwargs["session_manager"] = session_manager
-        except ImportError:
-            print("[agent] AgentCore Memory not available, running without persistence")
+            logger.info(f"[memory] Connected to AgentCore Memory: {memory_id}, session: {session_id}")
+        except ImportError as e:
+            logger.error(f"[memory] FAILED — package not installed: {e}")
         except Exception as e:
-            print(f"[agent] Memory init failed: {e}, running without persistence")
+            logger.error(f"[memory] FAILED to initialize: {type(e).__name__}: {e}")
+    elif memory_id and not session_id:
+        logger.warning("[memory] MEMORY_ID set but no session_id provided — running without persistence")
+    else:
+        logger.info("[memory] No AGENTCORE_MEMORY_ID set — running without persistence")
 
     return Agent(**agent_kwargs)
